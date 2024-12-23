@@ -112,12 +112,24 @@
       mainImage.src = uploadedImage.src;
 
       mainImage.onload = () => {
-        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(mainImage, 0, 0, width, height); // Draw image scaled to 80%
 
-        // Draw the logo
-        const logoWidth = canvas.width * 0.11; // 11% of image width
-        const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth); // Maintain aspect ratio
-        ctx.drawImage(logoImage, canvas.width - logoWidth - 26, 28, logoWidth, logoHeight);
+        // Define padding for the logo
+        var logoPaddingTop = 3.2; // in percentage
+        var logoPaddingRight = 2.5; // in percentage
+
+        // Calculate the logo width based on the image width (12% of the image width)
+        const logoWidth = width * 0.12; 
+
+        // Calculate the logo height to maintain the aspect ratio
+        const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth);
+
+        // Calculate the position of the logo based on padding
+        const logoX = width - logoWidth - (width * (logoPaddingRight / 100)); // Apply right padding
+        const logoY = height * (logoPaddingTop / 100); // Apply top padding
+
+        // Draw the logo with padding
+        ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
 
         // Download the resulting image
         const link = document.createElement('a');
@@ -142,10 +154,22 @@
       mainImage.onload = () => {
         ctx.drawImage(mainImage, 0, 0, width, height); // Draw image scaled to 80%
 
-        // Draw the logo with the same scaling applied
-        const logoWidth = width * 0.10; // 10% of the scaled image width
-        const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth); // Maintain aspect ratio
-        ctx.drawImage(logoImage, width - logoWidth - 23, 25, logoWidth, logoHeight);
+        // Define padding for the logo
+        var logoPaddingTop = 3.2; // in percentage
+        var logoPaddingRight = 2.5; // in percentage
+
+        // Calculate the logo width based on the image width (12% of the image width)
+        const logoWidth = width * 0.12; 
+
+        // Calculate the logo height to maintain the aspect ratio
+        const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth);
+
+        // Calculate the position of the logo based on padding
+        const logoX = width - logoWidth - (width * (logoPaddingRight / 100)); // Apply right padding
+        const logoY = height * (logoPaddingTop / 100); // Apply top padding
+
+        // Draw the logo with padding
+        ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
 
         // Use the Clipboard API to copy the image to clipboard with reduced quality
         canvas.toBlob((blob) => {
