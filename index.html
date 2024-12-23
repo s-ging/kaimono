@@ -130,34 +130,38 @@
     // Handle copy image button click (copy to clipboard)
     copyBtn.addEventListener('click', () => {
       const ctx = canvas.getContext('2d');
-      const width = uploadedImage.naturalWidth;
-      const height = uploadedImage.naturalHeight;
+      const width = uploadedImage.naturalWidth * 0.8;  // Scale width to 80%
+      const height = uploadedImage.naturalHeight * 0.8; // Scale height to 80%
       canvas.width = width;
       canvas.height = height;
 
-      // Draw the uploaded image and logo as done in download button
+      // Draw the uploaded image
       const mainImage = new Image();
       mainImage.src = uploadedImage.src;
 
       mainImage.onload = () => {
-        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(mainImage, 0, 0, width, height); // Draw image scaled to 80%
 
-        // Draw the logo
-        const logoWidth = canvas.width * 0.11; // 11% of image width
+        // Draw the logo with the same scaling applied
+        const logoWidth = width * 0.10; // 10% of the scaled image width
         const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth); // Maintain aspect ratio
-        ctx.drawImage(logoImage, canvas.width - logoWidth - 26, 28, logoWidth, logoHeight);
+        ctx.drawImage(logoImage, width - logoWidth - 23, 25, logoWidth, logoHeight);
 
-        // Use the Clipboard API to copy the image to clipboard
+        // Use the Clipboard API to copy the image to clipboard with reduced quality
         canvas.toBlob((blob) => {
-          navigator.clipboard.write([
-            new ClipboardItem({
-              'image/jpg': blob
-            })
-          ]).then(() => {
-          }).catch((err) => {
-            console.error('Clipboard error: ', err);
+          // Set the image format to 'image/jpeg' with reduced quality (e.g., 0.8)
+          const clipboardItem = new ClipboardItem({
+            'image/jpeg': blob
           });
-        });
+
+          navigator.clipboard.write([clipboardItem])
+            .then(() => {
+              console.log('Image copied to clipboard');
+            })
+            .catch((err) => {
+              console.error('Clipboard error: ', err);
+            });
+        }, 'image/jpeg', 0.8);  // Set the quality here
       };
     });
   </script>
