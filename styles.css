@@ -41,6 +41,7 @@ body {
     flex-direction: column;
     box-sizing: border-box;
     padding: 32px;
+    padding-bottom: 48px;
   }
 
   .section{
@@ -62,6 +63,7 @@ body {
     display: flex;
     flex-direction: row;
     gap: 16px;
+    z-index: 99;
   }
 
   .footer{
@@ -73,7 +75,7 @@ body {
   .footer-wrap{
     padding: 0px 9vw;
     position: absolute;
-    z-index: 0;
+    z-index: -1;
     bottom: 32px;
   }
 
