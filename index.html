@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jost">
+  <title>KAIMONO overlay maker</title>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1 class="h1">KAIMONO</h1>
+
+    <!-- Drag and Drop Upload Area -->
+    <div id="output" class="drop-area" ondrop="handleDrop(event)" ondragover="allowDrop(event)" onclick="triggerFileSelect()">
+      <p id="text">Drag and drop an image here or click to select</p>
+      <input class="hidden" type="file" id="image-upload" accept="image/*">
+      <img id="uploaded-image" alt="Uploaded Image">
+      <img id="logo-preview" src="KAIMONO long.svg" style="display: none;" alt="Logo">
+    </div>
+    
+    <!-- Action buttons -->
+    <div class="flex-h">
+    <button class="button" id="download-btn" style="display: none;">Download</button>
+    <button class="button" id="copy-btn" style="display: none;">Copy Image</button>
+    </div>
+    
+    <!-- Canvas to process the image -->
+    <canvas id="canvas"></canvas>
+
+    <div class="footer-wrap">
+    <p class="footer">EXCLUSIVE USE OF KAIMONO AND RELATED STAKEHOLDERS. ALL RIGHTS RESERVED.</p>
+    </div>
+
+  </div>
+
+  <script>
+    const imageUpload = document.getElementById('image-upload');
+    const uploadedImage = document.getElementById('uploaded-image');
+    const logoPreview = document.getElementById('logo-preview');
+    const textInstruction = document.getElementById('text');
+    const canvas = document.getElementById('canvas');
+    const downloadBtn = document.getElementById('download-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    
+    // Preload the logo image
+    const logoImage = new Image();
+    logoImage.src = 'KAIMONO long.svg'; // replace with your logo path
+
+    // Allow dragging and dropping
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+
+    // Handle drag and drop
+    function handleDrop(event) {
+      event.preventDefault();
+      const file = event.dataTransfer.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          uploadedImage.src = reader.result;
+          uploadedImage.style.display = 'block';
+          logoPreview.style.display = 'block';
+          downloadBtn.style.display = 'block';
+          copyBtn.style.display = 'block';
+
+          textInstruction.style.display = 'none';
+          document.getElementById('output').style.border = 'none';
+          document.getElementById('output').style.padding = '0px 0px';        
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Trigger file input click programmatically
+    function triggerFileSelect() {
+      imageUpload.click();
+    }
+
+    // Handle file input change
+    imageUpload.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          uploadedImage.src = reader.result;
+          uploadedImage.style.display = 'block';
+          logoPreview.style.display = 'block';
+          downloadBtn.style.display = 'block';
+          copyBtn.style.display = 'block';
+        
+          textInstruction.style.display = 'none';
+          document.getElementById('output').style.border = 'none';
+          document.getElementById('output').style.padding = '0px 0px';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Handle download button click
+    downloadBtn.addEventListener('click', () => {
+      const ctx = canvas.getContext('2d');
+      const width = uploadedImage.naturalWidth;
+      const height = uploadedImage.naturalHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw the uploaded image
+      const mainImage = new Image();
+      mainImage.src = uploadedImage.src;
+
+      mainImage.onload = () => {
+        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+
+        // Draw the logo
+        const logoWidth = canvas.width * 0.11; // 11% of image width
+        const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth); // Maintain aspect ratio
+        ctx.drawImage(logoImage, canvas.width - logoWidth - 26, 28, logoWidth, logoHeight);
+
+        // Download the resulting image
+        const link = document.createElement('a');
+        link.download = 'combined-image.png';
+        link.href = canvas.toDataURL('image/png', 1.0); // High quality
+        link.click();
+      };
+    });
+
+    // Handle copy image button click (copy to clipboard)
+    copyBtn.addEventListener('click', () => {
+      const ctx = canvas.getContext('2d');
+      const width = uploadedImage.naturalWidth;
+      const height = uploadedImage.naturalHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw the uploaded image and logo as done in download button
+      const mainImage = new Image();
+      mainImage.src = uploadedImage.src;
+
+      mainImage.onload = () => {
+        ctx.drawImage(mainImage, 0, 0, canvas.width, canvas.height);
+
+        // Draw the logo
+        const logoWidth = canvas.width * 0.11; // 11% of image width
+        const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth); // Maintain aspect ratio
+        ctx.drawImage(logoImage, canvas.width - logoWidth - 26, 28, logoWidth, logoHeight);
+
+        // Use the Clipboard API to copy the image to clipboard
+        canvas.toBlob((blob) => {
+          navigator.clipboard.write([
+            new ClipboardItem({
+              'image/png': blob
+            })
+          ]).then(() => {
+          }).catch((err) => {
+            console.error('Clipboard error: ', err);
+          });
+        });
+      };
+    });
+  </script>
+</body>
+</html>
