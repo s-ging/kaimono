@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" type="text/css" href="styles.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Jost">
+  <script src="https://cdn.jsdelivr.net/npm/compressorjs@1.1.0/dist/compressor.min.js"></script>
   <title>KAIMONO overlay maker</title>
 </head>
 
@@ -34,7 +35,7 @@
     </div>
 
   </div>
-
+  
   <script>
     const imageUpload = document.getElementById('image-upload');
     const uploadedImage = document.getElementById('uploaded-image');
@@ -47,58 +48,83 @@
     // Preload the logo image
     const logoImage = new Image();
     logoImage.src = 'KAIMONO long.svg'; // replace with your logo path
-
+  
     // Allow dragging and dropping
     function allowDrop(event) {
       event.preventDefault();
     }
-
+  
     // Handle drag and drop
     function handleDrop(event) {
       event.preventDefault();
       const file = event.dataTransfer.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          uploadedImage.src = reader.result;
-          uploadedImage.style.display = 'block';
-          logoPreview.style.display = 'block';
-          downloadBtn.style.display = 'block';
-          copyBtn.style.display = 'block';
-
-          textInstruction.style.display = 'none';
-          document.getElementById('output').style.border = 'none';
-          document.getElementById('output').style.padding = '0px 0px';        
-        };
-        reader.readAsDataURL(file);
+        loadImage(file);
       }
     }
-
+  
     // Trigger file input click programmatically
     function triggerFileSelect() {
       imageUpload.click();
     }
-
+  
     // Handle file input change
     imageUpload.addEventListener('change', (event) => {
       const file = event.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          uploadedImage.src = reader.result;
-          uploadedImage.style.display = 'block';
-          logoPreview.style.display = 'block';
-          downloadBtn.style.display = 'block';
-          copyBtn.style.display = 'block';
-        
-          textInstruction.style.display = 'none';
-          document.getElementById('output').style.border = 'none';
-          document.getElementById('output').style.padding = '0px 0px';
-        };
-        reader.readAsDataURL(file);
+        loadImage(file);
       }
     });
-
+  
+    // Load and compress the image only if necessary
+    function loadImage(file) {
+      const img = new Image();
+      const reader = new FileReader();
+  
+      reader.onload = () => {
+        img.src = reader.result;
+        img.onload = () => {
+          // Check image dimensions
+          if (img.width > 2000 || img.height > 2000) {
+            // Aggressive compression and load the image if it's larger than 2000px
+            new Compressor(file, {
+              quality: 0.4, // More aggressive compression (40% quality)
+              maxWidth: 1500,  // Resize to a more manageable width if necessary
+              maxHeight: 1500, // Resize to a more manageable height if necessary
+              success(result) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  uploadedImage.src = reader.result;
+                  uploadedImage.style.display = 'block';
+                  logoPreview.style.display = 'block';
+                  downloadBtn.style.display = 'block';
+                  copyBtn.style.display = 'block';
+                  textInstruction.style.display = 'none';
+                  document.getElementById('output').style.border = 'none';
+                  document.getElementById('output').style.padding = '0px 0px';
+                };
+                reader.readAsDataURL(result);
+              },
+              error(err) {
+                console.error('Compression error:', err);
+              }
+            });
+          } else {
+            // If the image is smaller than 2000px, load it normally
+            uploadedImage.src = reader.result;
+            uploadedImage.style.display = 'block';
+            logoPreview.style.display = 'block';
+            downloadBtn.style.display = 'block';
+            copyBtn.style.display = 'block';
+            textInstruction.style.display = 'none';
+            document.getElementById('output').style.border = 'none';
+            document.getElementById('output').style.padding = '0px 0px';
+          }
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  
     // Handle download button click
     downloadBtn.addEventListener('click', () => {
       const ctx = canvas.getContext('2d');
@@ -106,39 +132,42 @@
       const height = uploadedImage.naturalHeight;
       canvas.width = width;
       canvas.height = height;
-
+  
       // Draw the uploaded image
       const mainImage = new Image();
       mainImage.src = uploadedImage.src;
-
+  
       mainImage.onload = () => {
-        ctx.drawImage(mainImage, 0, 0, width, height); // Draw image scaled to 80%
-
+        ctx.drawImage(mainImage, 0, 0, width, height); // Draw image
+  
         // Define padding for the logo
         var logoPaddingTop = 2.5; // in percentage
         var logoPaddingRight = 2.5; // in percentage
-
+  
         // Calculate the logo width based on the image width (12% of the image width)
         const logoWidth = width * 0.12; 
-
+  
         // Calculate the logo height to maintain the aspect ratio
         const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth);
-
+  
         // Calculate the position of the logo based on padding
         const logoX = width - logoWidth - (width * (logoPaddingRight / 100)); // Apply right padding
         const logoY = height * (logoPaddingTop / 100); // Apply top padding
-
+  
         // Draw the logo with padding
         ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
-
-        // Download the resulting image
-        const link = document.createElement('a');
-        link.download = 'image.jpg';
-        link.href = canvas.toDataURL('image/jpg', 0.8); // High quality
-        link.click();
+  
+        // Compress and download the resulting image as PNG
+        canvas.toBlob((blob) => {
+          // Create a link and trigger download
+          const link = document.createElement('a');
+          link.download = 'image.png'; // Save as PNG
+          link.href = URL.createObjectURL(blob);
+          link.click();
+        }, 'image/png', 0.7); // Set the quality to 70% (compress)
       };
     });
-
+  
     // Handle copy image button click (copy to clipboard)
     copyBtn.addEventListener('click', () => {
       const ctx = canvas.getContext('2d');
@@ -146,38 +175,38 @@
       const height = uploadedImage.naturalHeight * 0.8; // Scale height to 80%
       canvas.width = width;
       canvas.height = height;
-
+  
       // Draw the uploaded image
       const mainImage = new Image();
       mainImage.src = uploadedImage.src;
-
+  
       mainImage.onload = () => {
-        ctx.drawImage(mainImage, 0, 0, width, height); // Draw image scaled to 80%
-
+        ctx.drawImage(mainImage, 0, 0, width, height); // Draw image
+  
         // Define padding for the logo
         var logoPaddingTop = 2.5; // in percentage
         var logoPaddingRight = 2.5; // in percentage
-
+  
         // Calculate the logo width based on the image width (12% of the image width)
         const logoWidth = width * 0.12; 
-
+  
         // Calculate the logo height to maintain the aspect ratio
         const logoHeight = logoImage.naturalHeight * (logoWidth / logoImage.naturalWidth);
-
+  
         // Calculate the position of the logo based on padding
         const logoX = width - logoWidth - (width * (logoPaddingRight / 100)); // Apply right padding
         const logoY = height * (logoPaddingTop / 100); // Apply top padding
-
+  
         // Draw the logo with padding
         ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
-
-        // Use the Clipboard API to copy the image to clipboard with reduced quality
+  
+        // Use the Clipboard API to copy the image to clipboard
         canvas.toBlob((blob) => {
-          // Set the image format to 'image/jpeg' with reduced quality (e.g., 0.8)
+          // Set the image format to 'image/png' for the clipboard
           const clipboardItem = new ClipboardItem({
             'image/png': blob
           });
-
+  
           navigator.clipboard.write([clipboardItem])
             .then(() => {
               console.log('Image copied to clipboard');
@@ -185,7 +214,7 @@
             .catch((err) => {
               console.error('Clipboard error: ', err);
             });
-        }, 'image/png', 0.8);  // Set the quality here
+        }, 'image/png', 0.7);  // Set the quality to 70% (compress)
       };
     });
   </script>
