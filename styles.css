@@ -41,7 +41,7 @@ body {
     flex-direction: column;
     box-sizing: border-box;
     padding: 32px;
-    padding-bottom: 48px;
+    padding-bottom: 120px;
   }
 
   .section{
